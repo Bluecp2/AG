@@ -33,9 +33,8 @@ Individual** allocate_individual_matrix(int rows, int cols, int gene_size){
         if (matrix[i] == NULL) return NULL;
 
         for (int j = 0; j < cols; j++){ //aloca cada ind
-            Individual ind = matrix[i][j];
-            allocate_individual(&ind, gene_size);
-            ind.id = i;
+            allocate_individual(& matrix[i][j], gene_size);
+            matrix[i][j].id = i;
         }
         
     }
@@ -88,3 +87,44 @@ Solution** tournament_selection(Solution* population, int pop_size, float select
     }
     return selected_parents;
 }
+void evolve_population(Individual **current_pop, Individual **new_pop,Solution **parents, int gene_size,
+    int pop_size){
+        for (size_t i = 0; i < pop_size; i+=2){
+            Solution *p1 = parents[i];
+            Solution *p2 = parents[i+1];
+
+            int cut = rand() % gene_size;
+            
+            for (size_t var = 0; var < 2; var++){
+                Individual* f1 = &new_pop[i][var];
+                Individual* f2 = &new_pop[i+1][var];
+                for (size_t b = 0; b < gene_size; b++){
+                    unsigned char *chromPai1 = (var == 0) ? p1->x.chromosome : p1->y.chromosome;
+                    unsigned char *chromPai2 = (var == 0) ? p2->x.chromosome : p2->y.chromosome;
+                    if(b < cut){
+                       f1->chromosome[b] = chromPai1[b];
+                       f2->chromosome[b] = chromPai2[b];
+                    }else{
+                        f1->chromosome[b] = chromPai2[b];
+                        f2->chromosome[b] = chromPai1[b];
+                    }
+                }
+            }
+        }
+}
+
+void mutate_population(Individual **matrix, int n_rows,int n_cols, int gene_size, 
+    float mutation_rate){
+    for (size_t i = 0; i < n_rows; i++){
+        for (size_t j = 0; j < n_cols; j++){
+            Individual *ind = &matrix[i][j];
+            
+            for (size_t chrom = 0; chrom < gene_size; chrom++){
+                float roll = (float)rand() / (float)RAND_MAX;
+                if (roll < mutation_rate)
+                    ind->chromosome[chrom] =  !ind->chromosome[chrom];
+            }
+        }
+    } 
+}
+
